@@ -1,18 +1,34 @@
 <script lang="ts">
   import {
-    RegionalMap
+    RegionalMap,
+    SeasonSelector
   } from "$lib";
 
-  let selectedRegion = $state(null);
+  let selectedRegion: string|null = $state(null);
+  let selectedSeason: string|null = $state(null);
+  const regions = ['Northeast', 'Northwest', 'Southwest'];
 </script>
 
 <div class="w-full">
-  <h1>New App</h1>
-  <br/>
-  <p>With some content.</p>
-  <p>{selectedRegion}</p>
-  <br/>
-  <br/>
-  <br/>
-  <RegionalMap bind:selectedFeature={selectedRegion} />
+  <div>
+    <p>{selectedRegion || 'No Region Selected'}</p>
+    <p>{selectedSeason || 'No Season Selected'}</p>
+  </div>
+
+  <div class='flex flex-col items-center'>
+    
+    <div>
+      {#each regions as region}
+        <button class='bg-black text-white p-3 m-6 hover:bg-slate-700' onclick={() => selectedRegion = region}>{region}</button>
+      {/each}
+      <button class='bg-black text-white p-3 m-6 hover:bg-slate-700' onclick={() => selectedRegion = null}>Clear</button>
+    </div>
+  </div>
+  <!-- <RegionalMap bind:selectedFeature={selectedRegion} /> -->
+  
+  <SeasonSelector bind:selected={selectedSeason} />
+
+  <!-- <div>
+    <p>Chart</p>
+  </div> -->
 </div>

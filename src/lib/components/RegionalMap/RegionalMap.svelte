@@ -5,7 +5,6 @@
 	import { feature } from 'topojson-client';
 	import { geoIdentity } from 'd3-geo';
 	import { scaleOrdinal } from 'd3-scale';
-	import { format } from 'd3-format';
 
 	import MapSvg from './Map.svg.svelte';
 	import MapLabels from './MapLabels.html.svelte';

@@ -1,3 +1,5 @@
+<!-- Adapted from Layer Cake map example  https://layercake.graphics/example/MapLayered -->
+
 <script lang="ts">
 	import { LayerCake, Svg, Html } from 'layercake';
 	import { feature } from 'topojson-client';
@@ -6,12 +8,13 @@
 	import { format } from 'd3-format';
 
 	import MapSvg from './Map.svg.svelte';
-	import Tooltip from './Tooltip.svelte';
+	import MapLabels from './MapLabels.html.svelte';
 
 	// Pre-projected topojson data, very small file
-	import topoJsonData from './states-albers-10m';
+	import topoJsonData from './statesAndRegionsTopojson';
 
-	type Accumulator = {colors: string[], regions: string[]};
+	type RegionalMapProps = { selectedFeature: any }
+	type Label = { center: number[], region: string };
 
 	// Data definitions
 	const statesGeoJson = feature(topoJsonData, topoJsonData.objects.states);
@@ -19,30 +22,29 @@
 	const regionLinesGeoJson = feature(topoJsonData, topoJsonData.objects['region-lines']);
 	const projection = geoIdentity;
 
-	// Map state
-	let evt: CustomEvent<any>|undefined;
-	let hideTooltip = true;
-
 	// Flat array of data that is mandatory for layercake
-	let flatData: any[] = [];
+	let flatData: any[] = $state([]);
 	if ('features' in statesGeoJson) {
 		flatData = statesGeoJson.features.map(d => d.properties);
 	}
-
+	
 	// Color and region names that will be used to color the state polygons
-	let colors: string[] = [];
-	let regions: string[] = [];
+	let colors: string[] = $state([]);
+	let regions: string[] = $state([]);
+	let labels: Label[] = $state([]);
 	if ('features' in regionPolysGeoJson) {
-		({ colors, regions } = regionPolysGeoJson.features.reduce((acc,f) => {
+		regionPolysGeoJson.features.forEach(f => {
 			if (f.properties !== null) {
-				acc.regions.push(f.properties.region);
-				acc.colors.push(f.properties.color);
+				regions.push(f.properties.region);
+				colors.push(f.properties.color);
+				labels.push({ center: f.properties.center, region: f.properties.region });
 			}
-			return acc;
-		},{ colors: [], regions: [] } as Accumulator));
+		});
 	}
-
-	const addCommas = format(',');
+	
+	// Map state and props declarations
+	let { selectedFeature = $bindable() }: RegionalMapProps = $props();
+	let evt: CustomEvent<any>|undefined = $state(undefined);
 </script>
 
 <div class="chart-container">
@@ -63,42 +65,34 @@
 		<Svg>
 			<MapSvg
 				{projection}
-				features={'features' in regionLinesGeoJson ? regionLinesGeoJson.features : null}
+				features={'features' in regionLinesGeoJson ? regionLinesGeoJson.features : undefined}
 				strokeWidth={2}
 				fill='none'
 			/>
 		</Svg>
-		
+
 		<!-- Mouse interaction layer, region polygons -->
 		<Svg>
 			<MapSvg
 				{projection}
-				features={'features' in regionPolysGeoJson ? regionPolysGeoJson.features : null}
+				features={'features' in regionPolysGeoJson ? regionPolysGeoJson.features : undefined}
+				bind:selectedFeature
 				fill='#00000000'
 				on:mousemove={event => {
 					evt = event;
-					hideTooltip = !Boolean(event);
 				}}
-				on:mouseout={() => hideTooltip = true}
 			/>
 		</Svg>
 
-		<!-- Tooltip -->
-		<Html
-			pointerEvents={false}
-		>
-			{#if hideTooltip !== true}
-				<Tooltip
-					{evt}
-					let:detail
-				>
-					{#each Object.entries(detail.props) as [key, value]}
-						{@const keyCapitalized = key.replace(/^\w/, d => d.toUpperCase())}
-						<div class="row"><span>{keyCapitalized}:</span> {typeof value === 'number' ? addCommas(value) : value}</div>
-					{/each}
-				</Tooltip>
-			{/if}
-		</Html>
+		<!-- Region Labels -->
+		<Html pointerEvents={false}>
+      <MapLabels
+        {projection}
+        features={labels}
+        getCoordinates={(d: Label) => d.center}
+        getLabel={(d: Label) => d.region}
+      />
+    </Html>
 	</LayerCake>
 </div>
 

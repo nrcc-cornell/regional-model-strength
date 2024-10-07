@@ -1,0 +1,61 @@
+<!-- Adapted from Layer Cake map example  https://layercake.graphics/example/MapLayered -->
+
+<script>
+  import { getContext } from 'svelte';
+
+  const { data, width, height } = getContext('LayerCake');
+
+  /** @type {Function} projection - A D3 projection function. Pass this in as an uncalled function, e.g. `projection={geoAlbersUsa}`. */
+  export let projection;
+
+  /** @type {Number|undefined} [fixedAspectRatio] - By default, the map fills to fit the $width and $height. If instead you want a fixed-aspect ratio, like for a server-side rendered map, set that here. */
+  export let fixedAspectRatio = undefined;
+
+  /** @type {Function} getLabel - An accessor function to get the field to display. */
+  export let getLabel;
+
+  /** @type {Function} [getCoordinates=d => d.geometry.coordinates] - An accessor function to get the `[x, y]` coordinate field. Defaults to a GeoJSON feature format. */
+  export let getCoordinates;
+
+  /** @type {Array<Object>|undefined} [features] - A list of labels as GeoJSON features. If unset, the plotted features will defaults to those in `$data.features`, assuming this field a list of GeoJSON features. */
+  export let features = undefined;
+
+  $: fitSizeRange = fixedAspectRatio ? [100, 100 / fixedAspectRatio] : [$width, $height];
+
+  $: projectionFn = projection().fitSize(fitSizeRange, $data);
+
+  $: units = fixedAspectRatio ? '%' : 'px';
+</script>
+
+<div class="map-labels" style:aspect-ratio={fixedAspectRatio ? 1 : null}>
+  {#each features || $data.features as d}
+    {@const coords = projectionFn(getCoordinates(d))}
+    <div
+      class="map-label"
+      style="
+      left: {coords[0]}{units};
+      top: {coords[1]}{units};
+    "
+    >
+      {getLabel(d)}
+    </div>
+  {/each}
+</div>
+
+<style>
+  .map-labels {
+    pointer-events: none;
+    position: relative;
+  }
+  .map-label {
+    max-width: 180px;
+    position: absolute;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #333;
+    color: white;
+    margin-top: -3px;
+    transform: translate(-50%, -50%);
+  }
+</style>

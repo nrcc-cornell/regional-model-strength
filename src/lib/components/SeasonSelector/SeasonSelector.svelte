@@ -65,6 +65,10 @@
     box-shadow: inset var(--dot-size) var(--dot-size) #7dd3fc;
   }
 
+  input[type="radio"]:hover {
+    cursor: pointer;
+  }
+
   input[type="radio"]:checked {
     border-color: #38bdf8;
   }

@@ -46,7 +46,7 @@
 	let evt: CustomEvent<any>|undefined = $state(undefined);
 </script>
 
-<div class="chart-container">
+<div class="map-container">
 	<LayerCake
 		data={statesGeoJson}
 		z='region'
@@ -96,9 +96,9 @@
 </div>
 
 <style>
-	.chart-container {
-		width: 100%;
-		height: 100%;
-    min-height: 250px;
+	.map-container {
+		width: 600px;
+		min-width: 600px;
+		height: 400px;
 	}
 </style>

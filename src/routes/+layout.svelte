@@ -1,9 +1,11 @@
 <script>
+  import { Toasts } from "$lib/components";
   import "../app.css";
 </script>
 
 <main class='flex flex-col min-h-[100vh] relative min-w-80 overflow-hidden'>
-  <div class='column h-full flex flex-col flex-1 overflow-y-auto bg-gray-100'>
+  <Toasts />
+  <!-- <div class='column h-full flex flex-col flex-1 overflow-y-auto bg-gray-100'> -->
     <!-- <Banner />
     <NavDrawer />
     <Header /> -->
@@ -11,15 +13,11 @@
       <!-- <NavSidebar /> -->
       <slot />
     </div>
-  </div>
+  <!-- </div> -->
   <!-- <div class='column'>
     <Footer />
   </div> -->
 </main>
-
-<!-- {#if $page.status === 200 && ($loadingOverlayData || $isInitialLoad)}
-  <Loading isInitial={$isInitialLoad} />
-{/if} -->
 
 <style>
   .column {

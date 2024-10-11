@@ -13,12 +13,13 @@
 		strokeWidth?: number;
 		features?: Array<any>;
 		selectedFeature?: any;
+		shadow?: boolean
 	}
 
 	const dispatch = createEventDispatcher();
 	const { data, width, height, zGet } = getContext('LayerCake') as {data: any, width: any, height: any, zGet: any};
 
-	let { projection, fixedAspectRatio, fill, stroke = '#333', strokeWidth = 0.5, features, selectedFeature = $bindable(null) }: MapProps = $props();
+	let { projection, fixedAspectRatio, fill, stroke = '#333', strokeWidth = 0.5, features, selectedFeature = $bindable(null), shadow=false }: MapProps = $props();
 
 	let fitSizeRange = $derived(fixedAspectRatio ? [100, 100 / fixedAspectRatio] : [$width, $height]);
 
@@ -64,7 +65,7 @@ tabindex=0
 </pattern>
 	{#each (features || $data.features) as feature}
 	<path
-			class={selectedFeature === feature.properties.region ? "selected-feature" : "feature-path"}
+			class={(selectedFeature === feature.properties.region ? "selected-feature" : "feature-path") + (shadow ? ' shadow' : '')}
 			fill={selectedFeature === feature.properties.region ? "url(#diagonalHatch)" : fill || $zGet(feature.properties)}
 			stroke={stroke}
 			stroke-width={strokeWidth}
@@ -88,5 +89,10 @@ tabindex=0
 	.selected-feature {
 		stroke: rgb(255, 115, 0);
 		stroke-width: 2px;
+	}
+
+	.shadow {
+		-webkit-filter: drop-shadow(black 2px 2px 2px);
+		filter: drop-shadow(black 2px 2px 2px);
 	}
 </style>

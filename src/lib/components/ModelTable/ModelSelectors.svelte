@@ -1,28 +1,17 @@
 <script module>
   export type ModelSelectionsState = Record<RowNames, Record<Products, Models>> & Record<"global", Record<Products, Models|"">>;
-  type ModelSelectionsStateKeys = keyof ModelSelectionsState;
+  export type ModelSelectionsStateKeys = keyof ModelSelectionsState;
 </script>
 <script lang="ts">
-  import type { Products, Models, RowNames } from "../../../app";
   import { products } from "$lib/constants";
 
   type ModelSelectionsProps = {
     rowName: RowNames|"global";
     modelSelections: ModelSelectionsState;
+    handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void
   }
 
-  let { rowName, modelSelections}: ModelSelectionsProps = $props();
-
-  function handleModelChange(productName: Products, modelName: Models) {
-    if (rowName === "global") {
-      (Object.keys(modelSelections) as ModelSelectionsStateKeys[]).forEach(rowName => {
-        modelSelections[rowName][productName] = modelName;
-      });
-    } else if (rowName) {
-      modelSelections["global"][productName] = '';
-      modelSelections[rowName][productName] = modelName;
-    }
-  }
+  let { rowName, modelSelections, handleModelChange }: ModelSelectionsProps = $props();
 </script>
 
 <div class='flex flex-col gap-px'>
@@ -33,7 +22,7 @@
       
     <label class='font-normal flex justify-between h-7 mx-1'>
       <span class='mr-1'>{productName}:</span>
-      <select style='width:155px;' class='bg-white border-b border-slate-300 pl-1' bind:value={modelSelections[rowName][productName as Products]} onchange={(evt) => handleModelChange(productName as Products, (evt.target as HTMLInputElement).value as unknown as Models)}>
+      <select style='width:155px;' class='bg-white border-b border-slate-300 pl-1' bind:value={modelSelections[rowName][productName as Products]} onchange={(evt) => handleModelChange(productName as Products, (evt.target as HTMLInputElement).value as unknown as Models, rowName)}>
         {#each modelNames as modelName}
           <option value={modelName}>{modelName}</option>
         {/each}

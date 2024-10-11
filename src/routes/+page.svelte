@@ -5,19 +5,56 @@
     RingLoader,
     ModelTable
   } from "$lib/components";
-  import { seasons } from "$lib/constants";
+  import { seasons, rowNames, products } from "$lib/constants";
   import { addToast } from "$lib/stores/toast.store";
-  import type { Regions, Seasons, RegionSeasonData, CellData } from "../app";
+  import type { ModelSelectionsState, ModelSelectionsStateKeys } from "$lib/components/ModelTable/ModelSelectors.svelte";
+  
+  const productNames = Object.keys(products) as Products[];
 
-  let selectedRegion: Regions|null = $state(null);
+  let selectedRegion: Regions|null = $state('Northeast');
   let selectedSeason: Seasons = $state(seasons[0]);
-  let selectedCell: CellData|null = $state(null);
+  let selectedCell: SelectedCellData|null = $state(null);
+  let modelSelections = $state(rowNames.reduce((tableAcc: any, name: RowNames) => {
+    if (!(productNames[0] in tableAcc)) {
+      tableAcc['global'] = {};
+      Object.entries(products).forEach(([productName, modelNames]) => tableAcc['global'][productName] = modelNames[0]);
+    }
+    
+    tableAcc[name] = Object.entries(products).reduce((rowAcc: any, [productName, modelNames]) => {
+      rowAcc[productName] = modelNames[0];
+      return rowAcc;
+    }, {});
+
+    return tableAcc;
+  }, {}) as ModelSelectionsState);
   
   let data: RegionSeasonData|null = $state(null);
   let dataIsLoading = $state(false);
   
-  function handleCellClick(clickedCell: CellData) {
-    selectedCell = clickedCell;
+  function updateCellData(newCellData: SelectedCellData|CellData) {
+    if ("id" in newCellData) {
+      selectedCell = newCellData;
+    } else if (selectedCell) {
+      selectedCell = { ...newCellData, "id": selectedCell.id };
+    }
+  }
+
+  function handleModelChange(productName: Products, modelName: Models, rowName: RowNames|"global") {
+    if (rowName === "global") {
+      (Object.keys(modelSelections) as ModelSelectionsStateKeys[]).forEach(rowName => {
+        modelSelections[rowName][productName] = modelName;
+      });
+    } else if (rowName) {
+      modelSelections["global"][productName] = '';
+      modelSelections[rowName][productName] = modelName;
+    }
+
+    if (data && selectedCell) {
+      const idParts = selectedCell.id.split('-') as [Products, RowNames, ColNames];
+      if (idParts[0] === productName && (rowName === 'global' || idParts[1] === rowName)) {
+        updateCellData(data[productName][modelSelections[idParts[1]][productName]][idParts[1]][idParts[2]]);
+      }
+    }
   }
 
   async function fetchRegionSeasonData() {
@@ -38,6 +75,10 @@
 
       if (response.ok) {
         data = await response.json() as RegionSeasonData;
+        if (selectedCell) {
+          const idParts = selectedCell.id.split('-') as [Products, RowNames, ColNames];
+          updateCellData(data[idParts[0]][modelSelections[idParts[1]][idParts[0]]][idParts[1]][idParts[2]]);
+        }
       } else {
         data = null;
         console.error(await response.text());
@@ -68,7 +109,13 @@
       {#if dataIsLoading}
       <RingLoader size='60' color='#ff3e00' unit='px' duration='2s' />
       {:else if data}
-        <ModelTable {handleCellClick} tableData={data} />
+        <ModelTable
+          tableData={data}
+          {selectedCell}
+          {updateCellData}
+          {modelSelections}
+          {handleModelChange}
+        />
       {:else}
         <div>
           <p>Select a region</p>

@@ -1,5 +1,4 @@
 <script module>
-  import type { RowNames, ColNames } from "../../../app";
   export type Hideables<Names> = {
     name: Names;
     show: boolean;

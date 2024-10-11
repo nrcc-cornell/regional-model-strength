@@ -4,38 +4,34 @@
 <!-- Cell Icons dependent on thresholds -->
 
 <script lang="ts">
-  import type { RegionSeasonData, Products, ColNames, RowNames, CellData } from "../../../app";
   import { products, rowNames, colNames } from "$lib/constants";
   import Hider from "./Hider.svelte";
   import type { Hideables } from "./Hider.svelte";
   import ModelSelectors from "./ModelSelectors.svelte";
-  import type { ModelSelectionsState } from "./ModelSelectors.svelte";
+  import type { ModelSelectionsState, ModelSelectionsStateKeys } from "./ModelSelectors.svelte";
   import TableIcon from "./TableIcon.svelte";
 
   type ModelTableProps = {
     tableData: RegionSeasonData;
-    handleCellClick: (x: CellData) => void
+    selectedCell: SelectedCellData|null;
+    updateCellData: (x: SelectedCellData|CellData) => void;
+    modelSelections: ModelSelectionsState;
+    handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void;
   }
   
   const productNames = Object.keys(products) as Products[];
 
-  let { tableData, handleCellClick }: ModelTableProps = $props();
+  let {
+    tableData,
+    selectedCell,
+    updateCellData,
+    modelSelections,
+    handleModelChange
+  }: ModelTableProps = $props();
 
   let cols: Hideables<ColNames> = $state(colNames.map(c => ({ name: c, show: true })));
   let rows: Hideables<RowNames> = $state(rowNames.map(r => ({ name: r, show: true })));
-  let modelSelections = $state(rowNames.reduce((tableAcc: any, name: RowNames) => {
-    if (!(productNames[0] in tableAcc)) {
-      tableAcc['global'] = {};
-      Object.entries(products).forEach(([productName, modelNames]) => tableAcc['global'][productName] = modelNames[0]);
-    }
-    
-    tableAcc[name] = Object.entries(products).reduce((rowAcc: any, [productName, modelNames]) => {
-      rowAcc[productName] = modelNames[0];
-      return rowAcc;
-    }, {});
-
-    return tableAcc;
-  }, {}) as ModelSelectionsState);
+  
 </script>
 
 <div class='flex flex-col items-center gap-2'>
@@ -43,7 +39,7 @@
     <thead>
       <tr>
         <th class='row-name-cell'>All Rows</th>
-        <th class='selector-cell'><ModelSelectors rowName="global" {modelSelections} /></th>
+        <th class='selector-cell'><ModelSelectors {handleModelChange} rowName="global" {modelSelections} /></th>
         {#each cols as col}
           {#if col.show}
             <th class='data-column-name'>{col.name}</th>
@@ -58,11 +54,21 @@
             <tr class="table-row">
               {#if idx === 0}
                 <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
-                <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors rowName={row.name} {modelSelections} /></td>
+                <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td>
               {/if}
               {#each cols as col}
                 {#if col.show}
-                  <td class='data-cell'><TableIcon handleCellClick={() => handleCellClick(tableData[productName][modelSelections[row.name][productName]][row.name][col.name])} value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} /></td>
+                  <td
+                    class={'data-cell' + (selectedCell && selectedCell.id === `${productName}-${row.name}-${col.name}` ? ' bg-zinc-300' : ' hover:bg-zinc-200 hover:cursor-pointer')}
+                    onclick={() => 
+                      updateCellData({
+                        ...tableData[productName][modelSelections[row.name][productName]][row.name][col.name],
+                        "id": `${productName}-${row.name}-${col.name}`
+                      })
+                    }
+                  >
+                    <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} />
+                  </td>
                 {/if}
               {/each}
             </tr>

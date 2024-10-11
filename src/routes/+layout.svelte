@@ -20,7 +20,7 @@
 </main>
 
 <style>
-  .column {
+  /* .column {
     @apply w-full lg:w-11/12 max-w-7xl min-w-6 lg:border-x-2 border-gray-300 m-0 lg:mx-auto;
-  }
+  } */
 </style>

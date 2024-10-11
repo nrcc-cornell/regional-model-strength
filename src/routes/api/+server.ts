@@ -1,6 +1,5 @@
 import { json } from '@sveltejs/kit';
 import data from '$lib/server/data.json';
-import type { RegionalData, RegionalDataRequest } from '../../app.js';
 
 const regionalData = data as RegionalData;
 

@@ -19,6 +19,7 @@
 	const statesGeoJson = feature(topoJsonData, topoJsonData.objects.states);
 	const regionPolysGeoJson = feature(topoJsonData, topoJsonData.objects.regions);
 	const regionLinesGeoJson = feature(topoJsonData, topoJsonData.objects['region-lines']);
+	const nationGeoJson = feature(topoJsonData, topoJsonData.objects.nation);
 	const projection = geoIdentity;
 
 	// Flat array of data that is mandatory for layercake
@@ -55,6 +56,16 @@
 		zRange={colors}
 		{flatData}
 	>
+		<!-- Layer for shadow, nation polygon -->
+		<Svg>
+			<MapSvg
+				{projection}
+				features={'features' in nationGeoJson ? nationGeoJson.features : undefined}
+				fill='#00000000'
+				shadow={true}
+			/>
+		</Svg>	
+	
 		<!-- Colored layered, state polygons -->
 		<Svg>
 			<MapSvg {projection} />

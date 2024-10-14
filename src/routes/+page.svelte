@@ -13,7 +13,7 @@
   
   const productNames = Object.keys(products) as Products[];
 
-  let selectedRegion: Regions|null = $state('Northeast');
+  let selectedRegion: Regions|null = $state(null);
   let selectedSeason: Seasons = $state(seasons[0]);
   let selectedCell: SelectedCellData|null = $state(null);
   let modelSelections = $state(rowNames.reduce((tableAcc: any, name: RowNames) => {

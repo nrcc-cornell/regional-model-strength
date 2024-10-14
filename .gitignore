@@ -25,5 +25,6 @@ vite.config.ts.timestamp-*
 .dev.vars
 
 cf_project_deployment.sh
+x.txt
 fake_data
 /src/lib/data

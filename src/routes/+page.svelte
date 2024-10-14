@@ -8,6 +8,8 @@
   import { seasons, rowNames, products } from "$lib/constants";
   import { addToast } from "$lib/stores/toast.store";
   import type { ModelSelectionsState, ModelSelectionsStateKeys } from "$lib/components/ModelTable/ModelSelectors.svelte";
+	import ModelMap from "$lib/components/ModelMap/ModelMap.svelte";
+	import ModelChart from "$lib/components/ModelChart/ModelChart.svelte";
   
   const productNames = Object.keys(products) as Products[];
 
@@ -31,8 +33,10 @@
   let data: RegionSeasonData|null = $state(null);
   let dataIsLoading = $state(false);
   
-  function updateCellData(newCellData: SelectedCellData|CellData) {
-    if ("id" in newCellData) {
+  function updateCellData(newCellData: SelectedCellData|CellData|null) {
+    if (newCellData === null) {
+      selectedCell = null;
+    } else if ("id" in newCellData) {
       selectedCell = newCellData;
     } else if (selectedCell) {
       selectedCell = { ...newCellData, "id": selectedCell.id };
@@ -125,8 +129,12 @@
   </div>
 
   {#if selectedCell}
-    <pre>
+    <div class='w-full grid grid-cols-map-chart items-center'>
+        <ModelMap src={selectedCell.mapPngFileName} />
+        <ModelChart data={selectedCell.graphData.data.map((v, i) => (selectedCell ? { x: 2024 - selectedCell.graphData.data.length + i, y: v} : { x: i, y: 0}))} />
+    </div>
+    <!-- <pre>
       {JSON.stringify(selectedCell, null, 4)}
-    </pre>
+    </pre> -->
   {/if}
 </div>

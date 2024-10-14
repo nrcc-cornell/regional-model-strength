@@ -8,13 +8,14 @@
   import Hider from "./Hider.svelte";
   import type { Hideables } from "./Hider.svelte";
   import ModelSelectors from "./ModelSelectors.svelte";
-  import type { ModelSelectionsState, ModelSelectionsStateKeys } from "./ModelSelectors.svelte";
+  import type { ModelSelectionsState } from "./ModelSelectors.svelte";
   import TableIcon from "./TableIcon.svelte";
+  import TableLegend from "./TableLegend.svelte";
 
   type ModelTableProps = {
     tableData: RegionSeasonData;
     selectedCell: SelectedCellData|null;
-    updateCellData: (x: SelectedCellData|CellData) => void;
+    updateCellData: (x: SelectedCellData|CellData|null) => void;
     modelSelections: ModelSelectionsState;
     handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void;
   }
@@ -32,6 +33,23 @@
   let cols: Hideables<ColNames> = $state(colNames.map(c => ({ name: c, show: true })));
   let rows: Hideables<RowNames> = $state(rowNames.map(r => ({ name: r, show: true })));
   
+  const legendIcons = [
+    { text: 'Poor', value: 0 },
+    { text: 'Good', value: 5 },
+    { text: 'Excellent', value: 10 }
+  ];
+
+  $effect(() => {
+    if (selectedCell) {
+      const idParts = selectedCell.id.split('-');
+      const isRowVisible = Boolean(rows.find(r => r.name === idParts[1] && r.show));
+      const isColVisible = Boolean(cols.find(c => c.name === idParts[2] && c.show));
+      
+      if (!isRowVisible || !isColVisible) {
+        updateCellData(null);
+      }
+    }
+  })
 </script>
 
 <div class='flex flex-col items-center gap-2'>
@@ -67,7 +85,9 @@
                       })
                     }
                   >
-                    <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} />
+                    <div class='w-full h-full flex justify-center items-center'>
+                      <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} />
+                    </div>
                   </td>
                 {/if}
               {/each}
@@ -78,9 +98,15 @@
     </tbody>
   </table>
 
-  <div class='flex gap-2'>
-    <Hider btnText='Show/Hide Rows' bind:items={rows} />
-    <Hider btnText='Show/Hide Cols' bind:items={cols} />
+  <div class='w-full gap-2 grid grid-cols-table-footer mt-2'>
+    <TableLegend icons={legendIcons} />
+
+    <div class='flex justify-center gap-2'>
+      <Hider btnText='Show/Hide Rows' bind:items={rows} />
+      <Hider btnText='Show/Hide Cols' bind:items={cols} />
+    </div>
+
+    <a href='https://www.rcc-acis.org/' target="_blank" aria-label="RCC ACIS Logo Link"><img src='/logos/acis.jpg' alt="RCC ACIS logo"/></a>
   </div>
 </div>
 

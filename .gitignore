@@ -27,4 +27,3 @@ vite.config.ts.timestamp-*
 cf_project_deployment.sh
 fake_data
 /src/lib/data
-/static/assets/maps

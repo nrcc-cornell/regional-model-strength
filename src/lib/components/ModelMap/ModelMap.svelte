@@ -6,6 +6,8 @@
   }
 
   let { src }: ModelMapProps = $props();
+
+  console.log(src);
 </script>
 
-<img src='{base}/assets/maps/{src}' alt="Model strength map for selected cell" />
+<img src='{base}/assets/maps/fake_map.png' alt="Model strength map for selected cell" />

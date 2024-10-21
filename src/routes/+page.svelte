@@ -3,9 +3,10 @@
     RegionalMap,
     SeasonSelector,
     RingLoader,
-    ModelTable
+    ModelTable,
+    InteractiveModelMap
   } from "$lib/components";
-  import { seasons, rowNames, products } from "$lib/constants";
+  import { regions, seasons, rowNames, products } from "$lib/constants";
   import { addToast } from "$lib/stores/toast.store";
   import type { ModelSelectionsState, ModelSelectionsStateKeys } from "$lib/components/ModelTable/ModelSelectors.svelte";
 	import ModelMap from "$lib/components/ModelMap/ModelMap.svelte";
@@ -13,7 +14,8 @@
   
   const productNames = Object.keys(products) as Products[];
 
-  let selectedRegion: Regions|null = $state(null);
+  let selectedRegion: Regions|null = $state('Northeast');
+  // let selectedRegion: Regions|null = $state(null);
   let selectedSeason: Seasons = $state(seasons[0]);
   let selectedCell: SelectedCellData|null = $state(null);
   let modelSelections = $state(rowNames.reduce((tableAcc: any, name: RowNames) => {
@@ -130,7 +132,10 @@
 
   {#if selectedCell}
     <div class='w-full grid grid-cols-map-chart items-center'>
-        <ModelMap src={selectedCell.mapPngFileName} />
+        <!-- <ModelMap src={selectedCell.mapPngFileName} /> -->
+        <div class='p-4' style='width:100%;height:600px'>
+          <InteractiveModelMap src='fake_map.png' regionBounds={(regions.find(r => r.name === selectedRegion) || { name: null, bounds: [[25,-125],[52,-65]] }).bounds as [[number, number],[number, number]]} />
+        </div>
         <ModelChart data={selectedCell.graphData.data.map((v, i) => (selectedCell ? { x: 2024 - selectedCell.graphData.data.length + i, y: v} : { x: i, y: 0}))} />
     </div>
     <!-- <pre>
@@ -138,3 +143,7 @@
     </pre> -->
   {/if}
 </div>
+
+<!-- <div class='p-4' style='width:800px;height:600px'>
+  <InteractiveModelMap src='fake_map.png' regionBounds={(regions.find(r => r.name === selectedRegion) || { name: null, bounds: [[25,-125],[52,-65]] }).bounds as [[number, number],[number, number]]} />
+</div> -->

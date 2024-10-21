@@ -4,11 +4,13 @@ import SeasonSelector from "./SeasonSelector/SeasonSelector.svelte";
 import RingLoader from "./RingLoader/RingLoader.svelte";
 import Toasts from "./Toasts/Toasts.svelte";
 import ModelTable from "./ModelTable/ModelTable.svelte";
+import InteractiveModelMap from "./InteractiveModelMap/InteractiveModelMap.svelte";
 
 export {
   RegionalMap,
   SeasonSelector,
   RingLoader,
   Toasts,
-  ModelTable
+  ModelTable,
+  InteractiveModelMap
 };

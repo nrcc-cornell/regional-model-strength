@@ -6,7 +6,7 @@ export default {
     extend: {
       gridTemplateColumns: {
         'table-footer': '175px 1fr 140px',
-        'map-chart': '350px 1fr'
+        'map-chart': '500px 1fr'
       }
     }
   },

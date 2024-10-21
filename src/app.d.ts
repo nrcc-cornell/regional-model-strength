@@ -10,7 +10,7 @@ declare global {
         }
     }
     
-    type Regions = typeof regions[number];
+    type Regions = typeof regions[number]['name'];
     type Seasons = typeof seasons[number];
     type Products = keyof typeof products;
     type Models = typeof products[Products][number]; 

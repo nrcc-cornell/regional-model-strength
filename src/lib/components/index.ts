@@ -5,6 +5,7 @@ import RingLoader from "./RingLoader/RingLoader.svelte";
 import Toasts from "./Toasts/Toasts.svelte";
 import ModelTable from "./ModelTable/ModelTable.svelte";
 import InteractiveModelMap from "./InteractiveModelMap/InteractiveModelMap.svelte";
+import ChartPng from "./ChartPng/ChartPng.svelte";
 
 export {
   RegionalMap,
@@ -12,5 +13,6 @@ export {
   RingLoader,
   Toasts,
   ModelTable,
-  InteractiveModelMap
+  InteractiveModelMap,
+  ChartPng
 };

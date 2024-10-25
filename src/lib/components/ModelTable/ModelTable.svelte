@@ -4,6 +4,7 @@
 <!-- Cell Icons dependent on thresholds -->
 
 <script lang="ts">
+  import { RingLoader } from "$lib/components";
   import { products, rowNames, colNames } from "$lib/constants";
   import Hider from "./Hider.svelte";
   import type { Hideables } from "./Hider.svelte";
@@ -13,11 +14,12 @@
   import TableLegend from "./TableLegend.svelte";
 
   type ModelTableProps = {
-    tableData: RegionSeasonData;
+    tableData: RegionSeasonData|null;
     selectedCell: SelectedCellData|null;
     updateCellData: (x: SelectedCellData|CellData|null) => void;
     modelSelections: ModelSelectionsState;
     handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void;
+    dataIsLoading: boolean
   }
   
   const productNames = Object.keys(products) as Products[];
@@ -27,7 +29,8 @@
     selectedCell,
     updateCellData,
     modelSelections,
-    handleModelChange
+    handleModelChange,
+    dataIsLoading
   }: ModelTableProps = $props();
 
   let cols: Hideables<ColNames> = $state(colNames.map(c => ({ name: c, show: true })));
@@ -56,8 +59,9 @@
   <table>
     <thead>
       <tr>
-        <th class='row-name-cell'>All Rows</th>
-        <th class='selector-cell'><ModelSelectors {handleModelChange} rowName="global" {modelSelections} /></th>
+        <th colSpan=2 class='selector-cell'></th>
+        <!-- <th class='row-name-cell'>All Rows</th>
+        <th class='selector-cell'><ModelSelectors {handleModelChange} rowName="global" {modelSelections} /></th> -->
         {#each cols as col}
           {#if col.show}
             <th class='data-column-name'>{col.name}</th>
@@ -66,35 +70,65 @@
       </tr>
     </thead>
     <tbody>
-      {#each rows as row}
-        {#if row.show}
-          {#each productNames as productName, idx}
-            <tr class="table-row">
-              {#if idx === 0}
-                <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
-                <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td>
-              {/if}
-              {#each cols as col}
-                {#if col.show}
-                  <td
-                    class={'data-cell' + (selectedCell && selectedCell.id === `${productName}-${row.name}-${col.name}` ? ' bg-zinc-300' : ' hover:bg-zinc-200 hover:cursor-pointer')}
-                    onclick={() => 
-                      updateCellData({
-                        ...tableData[productName][modelSelections[row.name][productName]][row.name][col.name],
-                        "id": `${productName}-${row.name}-${col.name}`
-                      })
-                    }
-                  >
-                    <div class='w-full h-full flex justify-center items-center'>
-                      <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} />
-                    </div>
+      {#if dataIsLoading || tableData === null}
+        {#each rows as row, rowIdx}
+          {#if row.show}
+            {#each productNames as productName, idx}
+              <tr class="table-row">
+                {#if idx === 0}
+                  <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
+                  <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td>
+                {/if}
+
+                {#if rowIdx === 0 && idx === 0}
+                  <td colSpan={cols.filter(c => c.show).length} rowSpan={rows.filter(r => r.show).length * productNames.length}>
+                    {#if dataIsLoading}
+                      <div class='flex justify-center items-center'>
+                        <RingLoader size='60' color='#ff3e00' unit='px' duration='2s' />
+                      </div>
+                    {:else}
+                      <div class='text-center'>Select a region</div>
+                    {/if}
                   </td>
                 {/if}
-              {/each}
-            </tr>
-          {/each}
-        {/if}
-      {/each}
+              </tr>
+            {/each}
+          {/if}
+        {/each}  
+      
+      
+      
+      {:else}
+        {#each rows as row}
+          {#if row.show}
+            {#each productNames as productName, idx}
+              <tr class="table-row">
+                {#if idx === 0}
+                  <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
+                  <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td>
+                {/if}
+                {#each cols as col}
+                  {#if col.show}
+                    <td
+                      class={'data-cell' + (selectedCell && selectedCell.id === `${productName}-${row.name}-${col.name}` ? ' bg-zinc-300' : ' hover:bg-zinc-200 hover:cursor-pointer')}
+                      onclick={() => 
+                        updateCellData({
+                          ...tableData[productName][modelSelections[row.name][productName]][row.name][col.name],
+                          "id": `${productName}-${row.name}-${col.name}`
+                        })
+                      }
+                    >
+                      <div class='w-full h-full flex justify-center items-center'>
+                        <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} />
+                      </div>
+                    </td>
+                  {/if}
+                {/each}
+              </tr>
+            {/each}
+          {/if}
+        {/each}
+      {/if}
     </tbody>
   </table>
 
@@ -102,8 +136,8 @@
     <TableLegend icons={legendIcons} />
 
     <div class='flex justify-center gap-2'>
-      <Hider btnText='Show/Hide Rows' bind:items={rows} />
-      <Hider btnText='Show/Hide Cols' bind:items={cols} />
+      <Hider btnText='Show/Hide Rows' bind:items={rows} deactivated={tableData === null} />
+      <Hider btnText='Show/Hide Cols' bind:items={cols} deactivated={tableData === null} />
     </div>
 
     <a href='https://www.rcc-acis.org/' target="_blank" aria-label="RCC ACIS Logo Link"><img src='/logos/acis.jpg' alt="RCC ACIS logo"/></a>

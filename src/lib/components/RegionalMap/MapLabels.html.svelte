@@ -47,7 +47,7 @@
     pointer-events: none;
     position: relative;
   }
-  .map-label {
+  :global(.map-label) {
     max-width: 180px;
     position: absolute;
     text-align: center;

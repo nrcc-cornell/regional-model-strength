@@ -7,6 +7,7 @@
   type HiderProps<HideableNames> = {
     btnText: string;
     items: Hideables<HideableNames>;
+    deactivated: boolean;
   }
 
   type HideableNames = RowNames | ColNames;
@@ -14,7 +15,7 @@
 
 <script lang="ts">
 
-  let { btnText, items=$bindable() }: HiderProps<HideableNames> = $props();
+  let { deactivated, btnText, items=$bindable() }: HiderProps<HideableNames> = $props();
   let isOpen = $state(false);
 
   const toggleOpen = () => {
@@ -35,7 +36,7 @@
 </script>
 
 <div class="hider" onfocusout={handleFocusLoss}>
-  <button class="px-2 py-1 rounded bg-zinc-700 hover:bg-black text-white" onclick={toggleOpen} >{btnText}</button>
+  <button class={"hider-btn " + (deactivated ? "inactive" : "active")} onclick={deactivated ? () => {} : toggleOpen} >{btnText}</button>
   <ul class="hider-content menu shadow bg-base-100 rounded-box" class:show={isOpen}>
     {#each items as item}
       <li class='[&:not(:last-child)]:border-b'>
@@ -71,5 +72,17 @@
 
   .show {
     display:block;
+  }
+
+  .hider-btn {
+    @apply px-2 py-1 rounded;
+  }
+
+  .active {
+    @apply text-white bg-zinc-700 hover:bg-black;
+  }
+
+  .inactive {
+    @apply text-zinc-500 bg-zinc-200 hover:cursor-default;
   }
 </style>

@@ -9,8 +9,10 @@
 	import MapSvg from './Map.svg.svelte';
 	import MapLabels from './MapLabels.html.svelte';
 
+	import { regions } from '$lib/constants';
+
 	// Pre-projected topojson data, very small file
-	import topoJsonData from './statesAndRegionsTopojson';
+	import topoJsonData from '$lib/topojson/statesAndRegionsTopojson';
 
 	type RegionalMapProps = { selectedFeature: any }
 	type Label = { center: number[], region: string };
@@ -29,18 +31,14 @@
 	}
 	
 	// Color and region names that will be used to color the state polygons
-	let colors: string[] = $state([]);
-	let regions: string[] = $state([]);
-	let labels: Label[] = $state([]);
-	if ('features' in regionPolysGeoJson) {
-		regionPolysGeoJson.features.forEach(f => {
-			if (f.properties !== null) {
-				regions.push(f.properties.region);
-				colors.push(f.properties.color);
-				labels.push({ center: f.properties.center, region: f.properties.region });
-			}
-		});
-	}
+	const { regionNames, colors, labels } = regions.reduce((acc,{ name, center, color }) => {
+		acc.regionNames.push(name);
+		acc.colors.push(color);
+		acc.labels.push({ center: center as unknown as number[], region: name });
+		return acc;
+	}, { regionNames: [] as string[], colors: [] as string[], labels: [] as Label[] });
+
+	$inspect(regionNames, colors);
 	
 	// Map state and props declarations
 	let { selectedFeature = $bindable() }: RegionalMapProps = $props();
@@ -51,8 +49,8 @@
 	<LayerCake
 		data={statesGeoJson}
 		z='region'
-		zScale={scaleOrdinal(regions, colors)}
-		zDomain={regions}
+		zScale={scaleOrdinal(regionNames, colors)}
+		zDomain={regionNames}
 		zRange={colors}
 		{flatData}
 	>

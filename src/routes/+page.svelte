@@ -14,69 +14,69 @@
   
   const productNames = Object.keys(products) as Products[];
 
-  let selectedRegion: Regions|null = $state('Northeast');
-  // let selectedRegion: Regions|null = $state(null);
+  // let selectedRegion: Regions|null = $state('Northeast');
+  let selectedRegion: Regions|null = $state(null);
   let selectedSeason: Seasons = $state(seasons[0]);
-  // let selectedCell: SelectedCellData|null = $state(null);
-  let selectedCell: SelectedCellData|null = $state({
-  "strengthValue": 2,
-  "mapPngFileName": "Northeast_Winter_STAR_Weighted Mean_Mean Temperature_Historical Bias.png",
-  "graphData": {
-    "data": [
-      0.11,
-      1.37,
-      9.07,
-      4.65,
-      7.94,
-      7.65,
-      0.87,
-      9.06,
-      7.21,
-      9.28,
-      3.37,
-      2.41,
-      1.71,
-      0.52,
-      0.22,
-      9.5,
-      9.53,
-      1.81,
-      0.68,
-      6.26,
-      8.08,
-      7.38,
-      8.23,
-      0.35,
-      9.76,
-      2.58,
-      9,
-      0.28,
-      1.16,
-      2.22,
-      7.39,
-      5.49,
-      2.37,
-      4.05,
-      0.79,
-      8.09,
-      9.25,
-      2.21,
-      3.26,
-      9.74,
-      0.21,
-      1.77,
-      0.31,
-      3.21,
-      1.61,
-      5.56,
-      3.94,
-      9.79,
-      6.06,
-      3.97
-    ]
-  },
-  "id": "STAR-Mean Temperature-Historical Bias"
-});
+  let selectedCell: SelectedCellData|null = $state(null);
+//   let selectedCell: SelectedCellData|null = $state({
+//   "strengthValue": 2,
+//   "mapPngFileName": "Northeast_Winter_STAR_Weighted Mean_Mean Temperature_Historical Bias.png",
+//   "graphData": {
+//     "data": [
+//       0.11,
+//       1.37,
+//       9.07,
+//       4.65,
+//       7.94,
+//       7.65,
+//       0.87,
+//       9.06,
+//       7.21,
+//       9.28,
+//       3.37,
+//       2.41,
+//       1.71,
+//       0.52,
+//       0.22,
+//       9.5,
+//       9.53,
+//       1.81,
+//       0.68,
+//       6.26,
+//       8.08,
+//       7.38,
+//       8.23,
+//       0.35,
+//       9.76,
+//       2.58,
+//       9,
+//       0.28,
+//       1.16,
+//       2.22,
+//       7.39,
+//       5.49,
+//       2.37,
+//       4.05,
+//       0.79,
+//       8.09,
+//       9.25,
+//       2.21,
+//       3.26,
+//       9.74,
+//       0.21,
+//       1.77,
+//       0.31,
+//       3.21,
+//       1.61,
+//       5.56,
+//       3.94,
+//       9.79,
+//       6.06,
+//       3.97
+//     ]
+//   },
+//   "id": "STAR-Mean Temperature-Historical Bias"
+// });
   
   let modelSelections = $state(rowNames.reduce((tableAcc: any, name: RowNames) => {
     if (!(productNames[0] in tableAcc)) {

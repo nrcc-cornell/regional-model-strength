@@ -15,8 +15,7 @@
   
   const productNames = Object.keys(products) as Products[];
 
-  let selectedRegion: Regions|null = $state('Northeast');
-  // let selectedRegion: Regions|null = $state(null);
+  let selectedRegion: Regions|null = $state(null);
   let selectedSeason: Seasons = $state(seasons[0]);
   let selectedDataType: DataTypes = $state(Object.keys(rowNames)[0] as DataTypes);
   let selectedCell: SelectedCellData|null = $state(null);

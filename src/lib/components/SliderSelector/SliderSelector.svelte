@@ -1,38 +1,42 @@
 <script lang="ts">
-  const seasonOptions = ['Winter', 'Spring', 'Summer', 'Fall', 'Annual'];
-  
-  type SeasonSelectorProps = {
-    selected: string|null
+  type SliderSelectorProps = {
+    selected: string|null;
+    options: string[];
+    label: string;
+    spacing?: 'small'|'large';
   }
 
   let {
-    selected = $bindable()
-  }: SeasonSelectorProps = $props();
+    selected = $bindable(),
+    options,
+    label,
+    spacing = 'small'
+  }: SliderSelectorProps = $props();
 
   // Allows selected to be defined in parent and passed in while maintaining the default value on initial load
   if (selected === null) {
-    selected = seasonOptions[0];
+    selected = options[0];
   }
 </script>
 
 <div
   role="radiogroup" 
-  aria-labelledby='label-season-selector'
-  id='group-season-selector'
+  aria-labelledby='label-slider-selector'
+  id='group-slider-selector'
 >
   <div
-    id='label-season-selector'
+    id='label-slider-selector'
     class='font-bold text-center'
-  >Season</div>
+  >{label}</div>
 
   <div
   class='relative w-fit flex mx-auto'
   >
-    <div class='absolute bg-sky-500 h-1 left-8 bottom-2' style='width: calc(100% - 64px);' ></div>
+    <div class={`absolute bg-sky-500 h-1 ${spacing === 'small' ? 'left-8' : 'left-12'} bottom-2`} style={`width: calc(100% - ${spacing === 'small' ? 64 : 94}px);`} ></div>
 
-    {#each seasonOptions as name}
+    {#each options as name}
       <div
-        class='flex flex-col items-center w-16 z-10'
+        class={`flex flex-col items-center ${spacing === 'small' ? 'w-16' : 'w-28'} z-10`}
       >
         <label
           for={name}

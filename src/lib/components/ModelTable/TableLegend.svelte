@@ -6,15 +6,16 @@
       text: string;
       value: number;
     }[];
+    tableThresholds: TableThresholdsObj;
   }
 
-  let { icons }: TableIconProps = $props();
+  let { icons, tableThresholds }: TableIconProps = $props();
 </script>
 
 <div class='grid grid-cols-3 box-border border border-zinc-600 p-2 rounded'>
   {#each icons as { text, value }}
     <div class='flex flex-col items-center justify-center gap-1'>
-      <TableIcon {value} />
+      <TableIcon {value} {tableThresholds} />
       <p class='text-xs text-zinc-600'>{text}</p>
     </div>
   {/each}

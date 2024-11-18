@@ -1,11 +1,5 @@
-<!-- Rows/Columns hideable, show/hide btn that drops down to checkboxes -->
-<!-- Cells clickable, bindable event, dont do stuff here -->
-<!-- Model dropdown -->
-<!-- Cell Icons dependent on thresholds -->
-
 <script lang="ts">
   import { RingLoader } from "$lib/components";
-  import { products, rowNames, colNames } from "$lib/constants";
   import Hider from "./Hider.svelte";
   import type { Hideables } from "./Hider.svelte";
   import ModelSelectors from "./ModelSelectors.svelte";
@@ -19,22 +13,33 @@
     updateCellData: (x: SelectedCellData|CellData|null) => void;
     modelSelections: ModelSelectionsState;
     handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void;
-    dataIsLoading: boolean
+    dataIsLoading: boolean;
+    colNames: ColNames[];
+    rowNames: RowNames[];
+    products: ProductsObj;
+    tableThresholds: TableThresholdsObj;
   }
   
-  const productNames = Object.keys(products) as Products[];
-
   let {
     tableData,
     selectedCell,
     updateCellData,
     modelSelections,
     handleModelChange,
-    dataIsLoading
+    dataIsLoading,
+    colNames,
+    rowNames,
+    products,
+    tableThresholds
   }: ModelTableProps = $props();
-
+  
+  const productNames = Object.keys(products) as Products[];
+  
   let cols: Hideables<ColNames> = $state(colNames.map(c => ({ name: c, show: true })));
   let rows: Hideables<RowNames> = $state(rowNames.map(r => ({ name: r, show: true })));
+  $effect(() => {
+    rows = rowNames.map(r => ({ name: r, show: true }));
+  })
   
   const legendIcons = [
     { text: 'Poor', value: 0 },
@@ -59,7 +64,8 @@
   <table>
     <thead>
       <tr>
-        <th colSpan=2 class='selector-cell'></th>
+        <th class='row-name-cell'></th>
+        <!-- <th colSpan=2 class='selector-cell'></th> -->
         <!-- <th class='row-name-cell'>All Rows</th>
         <th class='selector-cell'><ModelSelectors {handleModelChange} rowName="global" {modelSelections} /></th> -->
         {#each cols as col}
@@ -77,7 +83,7 @@
               <tr class="table-row">
                 {#if idx === 0}
                   <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
-                  <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td>
+                  <!-- <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td> -->
                 {/if}
 
                 {#if rowIdx === 0 && idx === 0}
@@ -95,9 +101,6 @@
             {/each}
           {/if}
         {/each}  
-      
-      
-      
       {:else}
         {#each rows as row}
           {#if row.show}
@@ -105,7 +108,7 @@
               <tr class="table-row">
                 {#if idx === 0}
                   <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
-                  <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td>
+                  <!-- <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} {products} /></td> -->
                 {/if}
                 {#each cols as col}
                   {#if col.show}
@@ -119,7 +122,7 @@
                       }
                     >
                       <div class='w-full h-full flex justify-center items-center'>
-                        <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} />
+                        <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} {tableThresholds} />
                       </div>
                     </td>
                   {/if}
@@ -133,7 +136,7 @@
   </table>
 
   <div class='w-full gap-2 grid grid-cols-table-footer mt-2'>
-    <TableLegend icons={legendIcons} />
+    <TableLegend icons={legendIcons} {tableThresholds} />
 
     <div class='flex justify-center gap-2'>
       <Hider btnText='Show/Hide Rows' bind:items={rows} deactivated={tableData === null} />
@@ -179,11 +182,8 @@
     border-top: var(--thickLine);
   }
 
-  .selector-cell {
+  .row-name-cell {
     border-right: var(--thickLine);
-  }
-
-  .selector-cell {
     padding-right: 0;
   }
 </style>

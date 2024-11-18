@@ -12,7 +12,7 @@
   });
 </script>
 
-<div>
+<div class='w-1/2 min-w-96'>
   {#if src}
     <img
       {src}

@@ -1,4 +1,4 @@
-<script module>
+<script module lang="ts">
   export type Hideables<Names> = {
     name: Names;
     show: boolean;
@@ -14,7 +14,6 @@
 </script>
 
 <script lang="ts">
-
   let { deactivated, btnText, items=$bindable() }: HiderProps<HideableNames> = $props();
   let isOpen = $state(false);
 

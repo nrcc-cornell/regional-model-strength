@@ -9,13 +9,18 @@
 	import MapSvg from './Map.svg.svelte';
 	import MapLabels from './MapLabels.html.svelte';
 
-	import { regions } from '$lib/constants';
-
 	// Pre-projected topojson data, very small file
 	import topoJsonData from '$lib/topojson/statesAndRegionsTopojson';
 
-	type RegionalMapProps = { selectedFeature: any }
+	type RegionalMapProps = {
+		selectedFeature: any;
+		regions: RegionsObj;
+	}
 	type Label = { center: number[], region: string };
+
+	// Map state and props declarations
+	let { selectedFeature = $bindable(), regions }: RegionalMapProps = $props();
+	let evt: CustomEvent<any>|undefined = $state(undefined);
 
 	// Data definitions
 	const statesGeoJson = feature(topoJsonData, topoJsonData.objects.states);
@@ -37,12 +42,6 @@
 		acc.labels.push({ center: center as unknown as number[], region: name });
 		return acc;
 	}, { regionNames: [] as string[], colors: [] as string[], labels: [] as Label[] });
-
-	$inspect(regionNames, colors);
-	
-	// Map state and props declarations
-	let { selectedFeature = $bindable() }: RegionalMapProps = $props();
-	let evt: CustomEvent<any>|undefined = $state(undefined);
 </script>
 
 <div class="map-container">

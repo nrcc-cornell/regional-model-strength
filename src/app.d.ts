@@ -1,4 +1,4 @@
-import { regions, seasons, products, rowNames, colNames } from "$lib/constants";
+import { regions, seasons, products, rowNames, colNames, tableThresholds } from "$lib/constants";
 
 
 declare global {
@@ -10,11 +10,16 @@ declare global {
         }
     }
     
+    type RegionsObj = typeof regions;
     type Regions = typeof regions[number]['name'];
     type Seasons = typeof seasons[number];
+    type ProductsObj = typeof products;
     type Products = keyof typeof products;
-    type Models = typeof products[Products][number]; 
-    type RowNames = typeof rowNames[number];
+    type TableThresholdsObj = typeof tableThresholds;
+    type Models = typeof products[Products][number];
+    type DataTypes = keyof typeof rowNames;
+    type RowNamesObj = typeof rowNames;
+    type RowNames = typeof rowNames[DataTypes][number];
     type ColNames = typeof colNames[number];
     type GraphData = { data: number[]; };
     type CellData = {
@@ -29,5 +34,5 @@ declare global {
     type RegionalDataRequest = {
         region: Regions;
         season: Seasons;
-    }
+    };
 }

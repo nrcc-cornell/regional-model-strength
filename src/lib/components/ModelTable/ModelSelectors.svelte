@@ -1,17 +1,16 @@
-<script module>
+<script module lang="ts">
   export type ModelSelectionsState = Record<RowNames, Record<Products, Models>> & Record<"global", Record<Products, Models|"">>;
   export type ModelSelectionsStateKeys = keyof ModelSelectionsState;
 </script>
 <script lang="ts">
-  import { products } from "$lib/constants";
-
   type ModelSelectionsProps = {
     rowName: RowNames|"global";
     modelSelections: ModelSelectionsState;
-    handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void
+    handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void;
+    products: ProductsObj
   }
 
-  let { rowName, modelSelections, handleModelChange }: ModelSelectionsProps = $props();
+  let { rowName, modelSelections, handleModelChange, products }: ModelSelectionsProps = $props();
 </script>
 
 <div class='flex flex-col gap-px'>

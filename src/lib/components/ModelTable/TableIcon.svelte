@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { tableThresholds } from "$lib/constants";
-  
   type TableIconProps = {
     value: number;
+    tableThresholds: TableThresholdsObj;
   }
   
-  let { value }: TableIconProps = $props();
+  let { value, tableThresholds }: TableIconProps = $props();
 
   let iconInfo = $derived.by(() => {
     if (value <= tableThresholds.low) {

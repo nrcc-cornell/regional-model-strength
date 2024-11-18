@@ -28,6 +28,6 @@ export default [
 		}
 	},
 	{
-		ignores: ['build/', '.svelte-kit/', 'dist/', '*.config.js']
+		ignores: ['build/', '.svelte-kit/', 'dist/', '*.config.js', 'src/lib/components/InteractiveModelMap/L.Map.Sync.js']
 	}
 ];

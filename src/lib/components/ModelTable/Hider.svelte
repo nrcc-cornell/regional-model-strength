@@ -1,8 +1,7 @@
 <script module lang="ts">
-  export type Hideables<Names> = {
-    name: Names;
+  export type Hideables<Names> = (Names & {
     show: boolean;
-  }[]
+  })[]
 
   type HiderProps<HideableNames> = {
     btnText: string;
@@ -10,7 +9,7 @@
     deactivated: boolean;
   }
 
-  type HideableNames = RowNames | ColNames;
+  type HideableNames = RowObjs | ColObjs;
 </script>
 
 <script lang="ts">

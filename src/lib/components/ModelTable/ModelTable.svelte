@@ -2,43 +2,49 @@
   import { RingLoader } from "$lib/components";
   import Hider from "./Hider.svelte";
   import type { Hideables } from "./Hider.svelte";
-  import ModelSelectors from "./ModelSelectors.svelte";
-  import type { ModelSelectionsState } from "./ModelSelectors.svelte";
   import TableIcon from "./TableIcon.svelte";
   import TableLegend from "./TableLegend.svelte";
 
   type ModelTableProps = {
-    tableData: RegionSeasonData|null;
+    tableData: SeasonData|null;
     selectedCell: SelectedCellData|null;
-    updateCellData: (x: SelectedCellData|CellData|null) => void;
-    modelSelections: ModelSelectionsState;
-    handleModelChange: (a: Products, b: Models, c: RowNames|"global") => void;
+    handleCellSelection: (x: SelectedCellData|null) => void;
+    selectedModels: SelectedModels;
     dataIsLoading: boolean;
-    colNames: ColNames[];
-    rowNames: RowNames[];
-    products: ProductsObj;
+    cols: ColArr;
+    rows: RowArr;
+    products: ProductArr;
     tableThresholds: TableThresholdsObj;
   }
   
   let {
     tableData,
     selectedCell,
-    updateCellData,
-    modelSelections,
-    handleModelChange,
+    handleCellSelection,
+    selectedModels,
     dataIsLoading,
-    colNames,
-    rowNames,
+    cols,
+    rows,
     products,
     tableThresholds
   }: ModelTableProps = $props();
   
-  const productNames = Object.keys(products) as Products[];
+  let colObjs: Hideables<ColObjs> = $state(cols.map(c => ({ ...c, show: true })));
+  let rowObjs: Hideables<RowObjs> = $state(rows.map(r => ({ ...r, show: true })));
   
-  let cols: Hideables<ColNames> = $state(colNames.map(c => ({ name: c, show: true })));
-  let rows: Hideables<RowNames> = $state(rowNames.map(r => ({ name: r, show: true })));
   $effect(() => {
-    rows = rowNames.map(r => ({ name: r, show: true }));
+    rowObjs = rows.map(r => ({ ...r, show: true }));
+  })
+  
+  $effect(() => {
+    if (selectedCell) {
+      const isRowVisible = Boolean(rowObjs.find(r => r.dataKey === selectedCell.row.dataKey && r.show));
+      const isColVisible = Boolean(colObjs.find(c => c.dataKey === selectedCell.col.dataKey && c.show));
+      
+      if (!isRowVisible || !isColVisible) {
+        handleCellSelection(null);
+      }
+    }
   })
   
   const legendIcons = [
@@ -46,29 +52,14 @@
     { text: 'Good', value: 5 },
     { text: 'Excellent', value: 10 }
   ];
-
-  $effect(() => {
-    if (selectedCell) {
-      const idParts = selectedCell.id.split('-');
-      const isRowVisible = Boolean(rows.find(r => r.name === idParts[1] && r.show));
-      const isColVisible = Boolean(cols.find(c => c.name === idParts[2] && c.show));
-      
-      if (!isRowVisible || !isColVisible) {
-        updateCellData(null);
-      }
-    }
-  })
 </script>
 
 <div class='flex flex-col items-center gap-2'>
   <table>
     <thead>
       <tr>
-        <th class='row-name-cell'></th>
-        <!-- <th colSpan=2 class='selector-cell'></th> -->
-        <!-- <th class='row-name-cell'>All Rows</th>
-        <th class='selector-cell'><ModelSelectors {handleModelChange} rowName="global" {modelSelections} /></th> -->
-        {#each cols as col}
+        <th class='row-name-cell' colSpan=2></th>
+        {#each colObjs as col}
           {#if col.show}
             <th class='data-column-name'>{col.name}</th>
           {/if}
@@ -77,17 +68,26 @@
     </thead>
     <tbody>
       {#if dataIsLoading || tableData === null}
-        {#each rows as row, rowIdx}
+        {#each rowObjs as row, rowIdx}
           {#if row.show}
-            {#each productNames as productName, idx}
-              <tr class="table-row">
-                {#if idx === 0}
-                  <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
-                  <!-- <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} /></td> -->
+            {#each products as productName, pidx}   <!-- This loop is necessary to create a second row in which to span -->
+              <tr class="table-row h-fit">
+                {#if pidx === 0}
+                  <th rowspan='{products.length}'>{row.name}</th>
+                  <td rowspan='{products.length}' class='row-name-cell'>
+                    <div class='flex flex-col gap-[10px]'>
+                      {#each products as productObj, idx}
+                        {#if idx !== 0}
+                          <div class='divider'></div>
+                        {/if}
+                        <span class='mr-1'>{productObj.name}:</span>
+                      {/each}
+                    </div>
+                  </td>
                 {/if}
 
-                {#if rowIdx === 0 && idx === 0}
-                  <td colSpan={cols.filter(c => c.show).length} rowSpan={rows.filter(r => r.show).length * productNames.length}>
+                {#if rowIdx === 0 && pidx === 0}
+                  <td colSpan={colObjs.filter(c => c.show).length} rowSpan={rowObjs.filter(r => r.show).length * products.length}>
                     {#if dataIsLoading}
                       <div class='flex justify-center items-center'>
                         <RingLoader size='60' color='#ff3e00' unit='px' duration='2s' />
@@ -102,27 +102,34 @@
           {/if}
         {/each}  
       {:else}
-        {#each rows as row}
+        {#each rowObjs as row}
           {#if row.show}
-            {#each productNames as productName, idx}
+            {#each products as productObj, idx}
               <tr class="table-row">
                 {#if idx === 0}
-                  <th class='row-name-cell' rowspan='{productNames.length}'>{row.name}</th>
-                  <!-- <td class='selector-cell' rowspan='{productNames.length}'><ModelSelectors {handleModelChange} rowName={row.name} {modelSelections} {products} /></td> -->
+                  <th rowspan='{products.length}'>{row.name}</th>
+                  <td rowspan='{products.length}' class='row-name-cell'>
+                    <div class='flex flex-col gap-[10px]'>
+                      {#each products as productObj,idx}
+                        {#if idx !== 0}
+                          <div class='divider'></div>
+                        {/if}
+                        <span class='mr-1'>{productObj.name}:</span>
+                      {/each}
+                    </div>
+                  </td>
                 {/if}
-                {#each cols as col}
+                {#each colObjs as col}
                   {#if col.show}
                     <td
-                      class={'data-cell' + (selectedCell && selectedCell.id === `${productName}-${row.name}-${col.name}` ? ' bg-zinc-300' : ' hover:bg-zinc-200 hover:cursor-pointer')}
+                      class={'data-cell ' + ((selectedCell && selectedCell.product.dataKey === productObj.dataKey && selectedCell.row.dataKey === row.dataKey && selectedCell.col.dataKey === col.dataKey) ? 'bg-zinc-300' : 'hover:bg-zinc-200 hover:cursor-pointer')}
                       onclick={() => 
-                        updateCellData({
-                          ...tableData[productName][modelSelections[row.name][productName]][row.name][col.name],
-                          "id": `${productName}-${row.name}-${col.name}`
-                        })
+                        handleCellSelection({product: productObj, row, col})
                       }
                     >
                       <div class='w-full h-full flex justify-center items-center'>
-                        <TableIcon value={tableData[productName][modelSelections[row.name][productName]][row.name][col.name].strengthValue} {tableThresholds} />
+                        {console.log(tableData, selectedModels, productObj, row, col)}
+                        <TableIcon value={tableData[productObj.dataKey][selectedModels[productObj.dataKey]][row.dataKey][col.dataKey]} {tableThresholds} />
                       </div>
                     </td>
                   {/if}
@@ -139,8 +146,8 @@
     <TableLegend icons={legendIcons} {tableThresholds} />
 
     <div class='flex justify-center gap-2'>
-      <Hider btnText='Show/Hide Rows' bind:items={rows} deactivated={tableData === null} />
-      <Hider btnText='Show/Hide Cols' bind:items={cols} deactivated={tableData === null} />
+      <Hider btnText='Show/Hide Rows' bind:items={rowObjs} deactivated={tableData === null} />
+      <Hider btnText='Show/Hide Cols' bind:items={colObjs} deactivated={tableData === null} />
     </div>
 
     <a href='https://www.rcc-acis.org/' target="_blank" aria-label="RCC ACIS Logo Link"><img src='/logos/acis.jpg' alt="RCC ACIS logo"/></a>
@@ -185,5 +192,9 @@
   .row-name-cell {
     border-right: var(--thickLine);
     padding-right: 0;
+  }
+
+  .divider {
+    border-top: var(--thinLine);
   }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import InteractiveModelMap from './InteractiveModelMap.svelte';
-  import type { Map, LatLngBounds } from 'leaflet';
+  import type { Map } from 'leaflet';
 
   // Pre-projected topojson data, very small file
 	import topoJsonData from '$lib/topojson/regionPolygons';
@@ -8,50 +8,49 @@
   const regionGeoJson = feature(topoJsonData, topoJsonData.objects['regions']);
   
   type LinkedInteractiveModelMapsProps = {
-    regionBounds: LatLngBounds;
-    selectedRegion: Regions|null;
-    mapsInfo: { src:string; }[];
+    regions: Regions;
+    selectedRegion: RegionObjs|null;
+    mapSrcs: MapSrc[];
   }
 
-  type MapStatus = {
-    ref: Map|null;
-    src: string;
-  }
-  
-  let { mapsInfo, regionBounds, selectedRegion=$bindable() }: LinkedInteractiveModelMapsProps = $props();
-  let mapStatuses: MapStatus[] = $state(mapsInfo.map(({ src }) => ({ ref: null, src })));
+  let { regions, selectedRegion=$bindable(), mapSrcs }: LinkedInteractiveModelMapsProps = $props();
+  let mapRefs: (Map|null)[] = $state(mapSrcs.map(_ => null));
 
   function handleRefChange(newRef: Map, idx: number) {
-    mapStatuses = [
-      ...mapStatuses.slice(0, idx),
-      {
-        ...mapStatuses[idx],
-        ref: newRef
-      },
-      ...mapStatuses.slice(idx + 1)
+    mapRefs = [
+      ...mapRefs.slice(0, idx),
+      newRef,
+      ...mapRefs.slice(idx + 1)
     ];
 
-    if (mapStatuses.every(ms => ms.ref !== null)) {
-      for (let i = 0; i < mapStatuses.length; i++) {
-        for (let j = 0; j < mapStatuses.length; j++) {
+    if (mapRefs.every(ref => ref !== null)) {
+      for (let i = 0; i < mapRefs.length; i++) {
+        for (let j = 0; j < mapRefs.length; j++) {
           if (i !== j) {
             // @ts-ignore
-            mapStatuses[i].ref.sync(mapStatuses[j].ref);
+            mapRefs[i].sync(mapRefs[j]);
           }
         }
       }
     }
   }
+
+  function handleFeatureClick(feature: any) {
+    const newRegion = regions.find(r => r.name === feature.properties.region);
+    if (newRegion) {
+      selectedRegion = newRegion;
+    }
+  }
 </script>
 
 <div class='w-full h-full flex flex-wrap justify-evenly gap-6'>
-  {#each mapStatuses as { src, ref }, i}
+  {#each mapRefs as ref, i}
     <InteractiveModelMap
-      {src}
-      {regionBounds}
+      src={mapSrcs[i]}
       bind:selectedRegion
       {regionGeoJson}
       {handleRefChange}
+      {handleFeatureClick}
       mapRef={ref}
       id={i}
     />

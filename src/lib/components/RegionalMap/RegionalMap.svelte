@@ -14,7 +14,7 @@
 
 	type RegionalMapProps = {
 		selectedFeature: any;
-		regions: RegionsObj;
+		regions: Regions;
 	}
 	type Label = { center: number[], region: string };
 
@@ -36,20 +36,27 @@
 	}
 	
 	// Color and region names that will be used to color the state polygons
-	const { regionNames, colors, labels } = regions.reduce((acc,{ name, center, color }) => {
-		acc.regionNames.push(name);
+	const { regionIds, colors, labels } = regions.reduce((acc,{ name, dataKey, center, color }) => {
+		acc.regionIds.push(dataKey);
 		acc.colors.push(color);
 		acc.labels.push({ center: center as unknown as number[], region: name });
 		return acc;
-	}, { regionNames: [] as string[], colors: [] as string[], labels: [] as Label[] });
+	}, { regionIds: [] as string[], colors: [] as string[], labels: [] as Label[] });
+
+	function handleRegionChange(f: any) {
+		const regionObj = regions.find(r => r.name === f.properties.region);
+		if (regionObj) {
+			selectedFeature = regionObj;
+		}
+	}
 </script>
 
 <div class="map-container">
 	<LayerCake
 		data={statesGeoJson}
 		z='region'
-		zScale={scaleOrdinal(regionNames, colors)}
-		zDomain={regionNames}
+		zScale={scaleOrdinal(regionIds, colors)}
+		zDomain={regionIds}
 		zRange={colors}
 		{flatData}
 	>
@@ -83,7 +90,8 @@
 			<MapSvg
 				{projection}
 				features={'features' in regionPolysGeoJson ? regionPolysGeoJson.features : undefined}
-				bind:selectedFeature
+				selectedFeature={selectedFeature ? selectedFeature.name : selectedFeature}
+				handleSelect={handleRegionChange}
 				fill='#00000000'
 				on:mousemove={event => {
 					evt = event;

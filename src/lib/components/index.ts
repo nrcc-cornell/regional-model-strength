@@ -6,6 +6,7 @@ import ModelTable from "./ModelTable/ModelTable.svelte";
 import LinkedInteractiveModelMaps from "./LinkedInteractiveModelMap/LinkedInteractiveModelMaps.svelte";
 import ChartPng from "./ChartPng/ChartPng.svelte";
 import SliderSelector from "./SliderSelector/SliderSelector.svelte";
+import ModelSelector from "./ModelSelector.svelte";
 
 export {
   RegionalMap,
@@ -14,5 +15,6 @@ export {
   ModelTable,
   LinkedInteractiveModelMaps,
   ChartPng,
-  SliderSelector
+  SliderSelector,
+  ModelSelector
 };

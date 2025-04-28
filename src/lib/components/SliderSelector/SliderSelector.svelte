@@ -1,16 +1,18 @@
 <script lang="ts">
   type SliderSelectorProps = {
-    selected: string|null;
-    options: string[];
+    selected: NamesObj|null;
+    options: NamesObj[];
     label: string;
     spacing?: 'small'|'large';
+    disabled?: boolean;
   }
 
   let {
     selected = $bindable(),
     options,
     label,
-    spacing = 'small'
+    spacing = 'small',
+    disabled = false
   }: SliderSelectorProps = $props();
 
   // Allows selected to be defined in parent and passed in while maintaining the default value on initial load
@@ -30,24 +32,28 @@
   >{label}</div>
 
   <div
-  class='relative w-fit flex mx-auto'
+    class='relative w-fit flex mx-auto'
   >
-    <div class={`absolute bg-sky-500 h-1 ${spacing === 'small' ? 'left-8' : 'left-12'} bottom-2`} style={`width: calc(100% - ${spacing === 'small' ? 64 : 94}px);`} ></div>
+    <div class={`absolute ${disabled ? "bg-gray-300" : "bg-sky-500"} h-1 ${spacing === 'small' ? 'left-8' : 'left-12'} bottom-2`} style={`width: calc(100% - ${spacing === 'small' ? 64 : 94}px);`} ></div>
 
-    {#each options as name}
+    {#each options as option}
       <div
         class={`flex flex-col items-center ${spacing === 'small' ? 'w-16' : 'w-28'} z-10`}
       >
         <label
-          for={name}
-        >{name}</label>
+          for={option.name}
+        >{option.name}</label>
         
         <input
-          class='bg-sky-600 border-2 border-sky-900 rounded-full m-0 appearance-none h-5 w-5 grid place-content-center'
+          class={`${disabled ? "bg-gray-300 border-gray-400" : "bg-sky-600 border-sky-900"} border-2 rounded-full m-0 appearance-none h-5 w-5 grid place-content-center`}
           type="radio"
-          id={name}
-          bind:group={selected}
-          value={name}
+          id={option.name}
+          oninput={() => {
+            selected = option;
+          }}
+          {disabled}
+          checked={selected && option.name === selected.name}
+          value={option.name}
         />
       </div>
     {/each}

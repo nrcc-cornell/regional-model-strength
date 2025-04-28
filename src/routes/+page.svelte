@@ -1,81 +1,35 @@
 <script lang="ts">
   import {
     RegionalMap,
+    SliderSelector,
     ModelTable,
     LinkedInteractiveModelMaps,
     ChartPng,
-    SliderSelector
+    ModelSelector
   } from "$lib/components";
-  import { regions, seasons, rowNames, colNames, products, tableThresholds, mapsInfo } from "$lib/constants";
+  import { regions, seasons, dataTypes, rows, cols, products, tableThresholds, models } from "$lib/constants";
   import { addToast } from "$lib/stores/toast.store";
-  import type { ModelSelectionsState, ModelSelectionsStateKeys } from "$lib/components/ModelTable/ModelSelectors.svelte";
-	import ModelMap from "$lib/components/ModelMap/ModelMap.svelte";
-	import ModelChart from "$lib/components/ModelChart/ModelChart.svelte";
-	import type { LatLngBounds } from "leaflet";
   
-  const productNames = Object.keys(products) as Products[];
-
-  let selectedRegion: Regions|null = $state(null);
-  let selectedSeason: Seasons = $state(seasons[0]);
-  let selectedDataType: DataTypes = $state(Object.keys(rowNames)[0] as DataTypes);
+  let selectedRegion: RegionObjs|null = $state(null);
+  let selectedSeason: SeasonObjs = $state(seasons[0]);
+  let selectedDataType: DataTypeObjs = $state(dataTypes[1]);
+  let selectedModels: SelectedModels = $state({ 'loca': 'ens', 'star': 'ens' });
   let selectedCell: SelectedCellData|null = $state(null);
+  let mapSrcs: MapSrc[]|null = $state(null);
 
-  let modelSelections = $state(Object.values(rowNames).reduce((tableAcc: any, rows: any) => {
-    if (!(productNames[0] in tableAcc)) {
-      tableAcc['global'] = {};
-      Object.entries(products).forEach(([productName, modelNames]) => tableAcc['global'][productName] = modelNames[0]);
-    }
-
-    rows.forEach((rowName: RowNames) => {
-      tableAcc[rowName] = Object.entries(products).reduce((rowAcc: any, [productName, modelNames]) => {
-        rowAcc[productName] = modelNames[0];
-        return rowAcc;
-      }, {});
-    });
-
-    return tableAcc;
-  }, {}) as unknown as ModelSelectionsState);
-  
-  let data: RegionSeasonData|null = $state(null);
+  let data: RegionData|null = $state(null);
   let dataIsLoading = $state(false);
-  
-  function updateCellData(newCellData: SelectedCellData|CellData|null) {
-    if (newCellData === null) {
-      selectedCell = null;
-    } else if ("id" in newCellData) {
-      selectedCell = newCellData;
-    } else if (selectedCell) {
-      selectedCell = { ...newCellData, "id": selectedCell.id };
-    }
-  }
-
-  function handleModelChange(productName: Products, modelName: Models, rowName: RowNames|"global") {
-    if (rowName === "global") {
-      (Object.keys(modelSelections) as ModelSelectionsStateKeys[]).forEach(rowName => {
-        modelSelections[rowName][productName] = modelName;
-      });
-    } else if (rowName) {
-      modelSelections["global"][productName] = '';
-      modelSelections[rowName][productName] = modelName;
-    }
-
-    if (data && selectedCell) {
-      const idParts = selectedCell.id.split('-') as [Products, RowNames, ColNames];
-      if (idParts[0] === productName && (rowName === 'global' || idParts[1] === rowName)) {
-        updateCellData(data[productName][modelSelections[idParts[1]][productName]][idParts[1]][idParts[2]]);
-      }
-    }
-  }
 
   async function fetchRegionSeasonData() {
-    if (selectedRegion && selectedSeason) {
+    if (selectedRegion) {
+      // Display loading component
       dataIsLoading = true;
       
       // Minimum of 500ms loading time to avoid flashing loading component
       const [response, _] = await Promise.all([
         fetch('/api', {
           method: 'POST',
-          body: JSON.stringify({ region: selectedRegion, season: selectedSeason }),
+          body: JSON.stringify({ region: selectedRegion.dataKey }),
           headers: { 'content-type': 'application/json' }
         }),
         new Promise((resolve) =>
@@ -84,12 +38,10 @@
       ]);
 
       if (response.ok) {
-        data = await response.json() as RegionSeasonData;
-        if (selectedCell) {
-          const idParts = selectedCell.id.split('-') as [Products, RowNames, ColNames];
-          updateCellData(data[idParts[0]][modelSelections[idParts[1]][idParts[0]]][idParts[1]][idParts[2]]);
-        }
+        // Update data on successful call
+        data = await response.json() as RegionData;
       } else {
+        // Handle displaying error on failed call
         data = null;
         console.error(await response.text());
         addToast({
@@ -100,59 +52,91 @@
         });
       }
 
+      // Remove loading component
       dataIsLoading = false;
-    }
-  }
-
-  function constructSrc(id: string) {
-    const [ model, row, column ] = id.split('-');
-    if (column !== 'Historical Bias') {
-      return 'fake_map.png';
-    } else {
-      return `${model.toLowerCase()}_rx1dayMean_downscale_bias_map.png`;
     }
   }
 
   $effect(() => { fetchRegionSeasonData(); });
 
-  $inspect(selectedDataType);
+  function constructMapSrcs(newSelectedCell: SelectedCellData, selectedModels: SelectedModels) {
+    const row = newSelectedCell.row.dataKey;
+    const col = newSelectedCell.col.dataKey;
+    const product = newSelectedCell.product.dataKey;
+    const model = selectedModels[product];
+    
+    const observed = product === 'loca' ? 'livneh' : 'nclimgrid';
+
+    return [
+      { src: `${observed}_${row}_${col}_blank.png`, cbar: `${row}_map_colorbar.png` },
+      { src: `${product}_${model}_${row}_${col}_blank.png`, cbar: `${row}_map_colorbar.png` },
+      { src: `${observed}_${product}_${row}_${col === 'historical_mean' ? 'historical_bias' : col}_blank.png`, cbar: 'bias_map_colorbar.png' },
+    ];
+  }
+
+  function updateSelectedCell(selection: SelectedCellData|null) {
+    if (selection) {
+      selectedCell = selection;
+      mapSrcs = constructMapSrcs(selection, selectedModels);
+    } else {
+      selectedCell = null;
+      mapSrcs = null;
+    }
+  }
+
+  function handleModelChange(selectedProductObj: ProductObjs, selectedModelId: ModelIds) {
+    selectedModels = { ...selectedModels, [selectedProductObj.dataKey]: selectedModelId };
+  }
 </script>
 
 <div class="w-full max-w-[1500px] mx-auto flex flex-wrap justify-around items-center box-border p-4">
   <RegionalMap bind:selectedFeature={selectedRegion} {regions} />
-  
+
   <div class='flex justify-center items-center w-[720px]'>
     <div class='flex flex-col gap-3 p-8 justify-center items-center border border-slate-200 bg-white rounded-md'>
       <div>
-        <SliderSelector bind:selected={selectedSeason} options={seasons as unknown as string[]} label='Seasons' />
-        <SliderSelector bind:selected={selectedDataType} options={Object.keys(rowNames)} label='Data' spacing='large' />
+        <SliderSelector disabled={true} bind:selected={selectedSeason} options={seasons as unknown as NamesObj[]} label='Seasons' />
+        <SliderSelector disabled={true} bind:selected={selectedDataType} options={dataTypes as unknown as NamesObj[]} label='Data' spacing='large' />
+      </div>
+
+      <div>
+        <div class='font-bold text-center'>Model</div>
+        <div class='flex gap-2'>
+          {#each products as productObj}
+            <ModelSelector
+              disabled={selectedRegion === null}
+              product={productObj}
+              selectedModel={selectedModels[productObj.dataKey]}
+              modelOptions={models[productObj.dataKey]}
+              {handleModelChange}
+            />
+          {/each}
+        </div>
       </div>
       
       <ModelTable
-        tableData={data}
-        colNames={colNames as unknown as ColNames[]}
-        rowNames={rowNames[selectedDataType] as unknown as RowNames[]}
-        {selectedCell}
-        {updateCellData}
-        {modelSelections}
-        {handleModelChange}
-        {dataIsLoading}
+        tableData={data ? data[selectedSeason.dataKey] : data}
+        rows={rows[selectedDataType.dataKey]}
+        {cols}
         {products}
+        {dataIsLoading}
         {tableThresholds}
+        {selectedCell}
+        handleCellSelection={updateSelectedCell}
+        {selectedModels}
       />
     </div>
   </div>
 
-  {#if selectedCell}
-      <!-- <ModelMap src={selectedCell.mapPngFileName} /> -->
-      <div class='p-4 h-fit w-fit'>
-        <LinkedInteractiveModelMaps
-          regionBounds={(regions.find(r => r.name === selectedRegion) || { name: null, bounds: [[25,-125],[52,-65]] }).bounds as unknown as LatLngBounds}
-          bind:selectedRegion
-          {mapsInfo}
-        />
-      </div>
-      <!-- <ModelChart data={selectedCell.graphData.data.map((v, i) => (selectedCell ? { x: 2024 - selectedCell.graphData.data.length + i, y: v} : { x: i, y: 0}))} /> -->
-      <ChartPng {selectedRegion} />
+  {#if selectedCell && selectedRegion}
+    <div class='p-4 h-fit w-fit'>
+      <LinkedInteractiveModelMaps
+        {regions}
+        bind:selectedRegion
+        mapSrcs={mapSrcs || []}
+      />
+    </div>
+
+    <ChartPng {selectedRegion} {selectedCell} />
   {/if}
 </div>

@@ -13,21 +13,22 @@
 		strokeWidth?: number;
 		features?: Array<any>;
 		selectedFeature?: any;
-		shadow?: boolean
+		shadow?: boolean;
+		handleSelect?: (feature: any) => void;
 	}
 
 	const dispatch = createEventDispatcher();
 	const { data, width, height, zGet } = getContext('LayerCake') as {data: any, width: any, height: any, zGet: any};
 
-	let { projection, fixedAspectRatio, fill, stroke = '#333', strokeWidth = 0.5, features, selectedFeature = $bindable(null), shadow=false }: MapProps = $props();
-
+	let { projection, fixedAspectRatio, fill, stroke = '#333', strokeWidth = 0.5, features, selectedFeature = $bindable(null), shadow=false, handleSelect=defaultHandleSelect }: MapProps = $props();
+	
 	let fitSizeRange = $derived(fixedAspectRatio ? [100, 100 / fixedAspectRatio] : [$width, $height]);
-
+	
 	let projectionFn = $derived(projection()
-		.fitSize(fitSizeRange, $data));
-
+	.fitSize(fitSizeRange, $data));
+	
 	let geoPathFn = $derived(geoPath(projectionFn));
-
+	
 	function handleMousemove(feature: any) {
 		return function handleMousemoveFn(e: any) {
 			raise(this);
@@ -37,14 +38,18 @@
 		}
 	}
 
-	function handleClick(e: MouseEvent, feature: any) {
+	function defaultHandleSelect(feature: any) {
 		selectedFeature = feature.properties.region;
+	}
+	
+	function handleClick(e: MouseEvent, feature: any) {
+		handleSelect(feature);
 	}
 
 	function handleKeyPress(e: KeyboardEvent, feature: any) {
 		e.preventDefault();
 		if (e.key === 'Enter') {
-			selectedFeature = feature.properties.region;
+			handleSelect(feature);
 		}
 	}
 </script>

@@ -50,7 +50,7 @@ declare global {
         region: RegionIds;
     };
 
-    type MapSrc = { src: string, cbar: string };
+    type MapSrc = { src: string, cbar: string, title: string };
     type SelectedCellData = {
         product: ProductObjs;
         row: RowObjs;

@@ -65,12 +65,12 @@
     const product = newSelectedCell.product.dataKey;
     const model = selectedModels[product];
     
-    const observed = product === 'loca' ? 'livneh' : 'nclimgrid';
+    const observed = product === 'loca' ? { dataKey: 'livneh', name: 'Livneh'} : { dataKey: 'nclimgrid', name: 'nClimGrid'};
 
     return [
-      { src: `${observed}_${row}_${col}_blank.png`, cbar: `${row}_map_colorbar.png` },
-      { src: `${product}_${model}_${row}_${col}_blank.png`, cbar: `${row}_map_colorbar.png` },
-      { src: `${observed}_${product}_${row}_${col === 'historical_mean' ? 'historical_bias' : col}_blank.png`, cbar: 'bias_map_colorbar.png' },
+      { title: `${observed.name} Observed`, src: `${observed.dataKey}_${row}_${col}_blank.png`, cbar: `${row}_map_colorbar.png` },
+      { title: `${newSelectedCell.product.name} Observed`, src: `${product}_${model}_${row}_${col}_blank.png`, cbar: `${row}_map_colorbar.png` },
+      { title: `Model Bias`, src: `${observed.dataKey}_${product}_${row}_${col === 'historical_mean' ? 'historical_bias' : col}_blank.png`, cbar: 'bias_map_colorbar.png' },
     ];
   }
 

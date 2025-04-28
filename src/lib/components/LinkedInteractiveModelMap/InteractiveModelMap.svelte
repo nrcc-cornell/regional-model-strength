@@ -105,6 +105,7 @@
 
 {#if L}
   <div class='h-96 w-96 flex flex-col justify-center gap-1'>
+    <h3 class='font-bold'>{src.title}</h3>
     <div class='w-full h-5/6' use:initMap></div>
     <img class='h-auto w-full mx-auto' src={`${base}/assets/colorbars/${src.cbar}`} alt='Colorbar for leaflet map' />
   </div>
